@@ -1,52 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute Video Test</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100vh;
-      justify-content: center;
-    }
-    #ad-container {
-      max-width: 600px;
-      width: 100%;
-      background: #fff;
-      padding: 10px;
-      box-shadow: 0 0 10px #aaa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 340px;
-      user-select: none;
-      touch-action: pan-y;
-    }
-    video {
-      max-width: 100%;
-      max-height: 320px;
-      display: block;
-      margin: auto;
-      border-radius: 8px;
-      outline: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Test Video</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 20px;
+    background: #f0f0f0;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh;
+  }
+  video {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #555;
+  }
+</style>
 </head>
 <body>
 
-  <div id="ad-container">
-    <video 
-      src="https://player.vimeo.com/external/310176511.sd.mp4?s=fce3f9b268eebeb2ee30e12a04a6f8b19bb74a43&profile_id=165" 
-      autoplay muted loop playsinline controls
-      tabindex="0"
-    ></video>
-  </div>
+<video controls autoplay muted loop playsinline>
+  <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm" />
+  <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
 
 </body>
 </html>
