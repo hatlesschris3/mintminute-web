@@ -3,71 +3,150 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute Web App</title>
+  <title>MintMinute Web Ads</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f1f8e9;
+      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 2rem;
-      color: #33691e;
+      background: #f0f0f0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      height: 100vh;
+      justify-content: center;
     }
-    header {
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-    h1 {
-      margin: 0;
-      font-weight: 700;
-    }
-    p {
-      font-size: 1.2rem;
-      margin: 0.5rem 0 2rem 0;
-    }
-    .video-container {
-      width: 100%;
+    #ad-container {
       max-width: 600px;
-      background: #c5e1a5;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 0 10px #9ccc65;
+      width: 100%;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 0 10px #aaa;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 340px;
-      color: #558b2f;
-      font-weight: 600;
-      font-size: 1.3rem;
+      user-select: none;
+      touch-action: pan-y;
     }
-    a.btn-back {
-      margin-top: 2rem;
-      background-color: #558b2f;
-      color: white;
-      text-decoration: none;
-      padding: 0.8rem 1.6rem;
+    video, img {
+      max-width: 100%;
+      max-height: 320px;
+      display: block;
+      margin: auto;
       border-radius: 8px;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
     }
-    a.btn-back:hover {
-      background-color: #33691e;
+    #ad-description {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 1.2em;
+      min-height: 2em;
+      max-width: 600px;
+      padding: 0 10px;
+      color: #333;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>MintMinute Web App</h1>
-    <p>Watch ads. Earn money. Easy and fast.</p>
-  </header>
-  
-  <div class="video-container">
-    {/* Video or ad player goes here */}
-    Video/Ad content placeholder
+
+  <div id="ad-container">
+    <!-- Ad content (video/image) will be injected here -->
   </div>
-  
-  <a href="index.html" class="btn-back">Back to Home</a>
+  <div id="ad-description"></div>
+
+  <script>
+    let ads = [];
+    let currentIndex = 0;
+    const container = document.getElementById('ad-container');
+    const description = document.getElementById('ad-description');
+
+    async function loadAds() {
+      try {
+        const response = await fetch('/ads.json');
+        if (!response.ok) throw new Error('Failed to load ads');
+        ads = await response.json();
+        if (!ads.length) {
+          description.textContent = 'No ads available.';
+          return;
+        }
+        currentIndex = 0;
+        showAd(currentIndex);
+      } catch (err) {
+        description.textContent = 'Error loading ads.';
+        console.error(err);
+      }
+    }
+
+    function showAd(index) {
+      container.innerHTML = '';
+      const ad = ads[index];
+
+      if (ad.type === 'video') {
+        const video = document.createElement('video');
+        video.src = ad.url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.controls = false;
+        container.appendChild(video);
+      } else if (ad.type === 'image') {
+        const img = document.createElement('img');
+        img.src = ad.url;
+        container.appendChild(img);
+      } else {
+        container.textContent = 'Unsupported ad type.';
+      }
+
+      description.textContent = ad.description || '';
+    }
+
+    function nextAd() {
+      currentIndex = (currentIndex + 1) % ads.length;
+      showAd(currentIndex);
+    }
+
+    function prevAd() {
+      currentIndex = (currentIndex - 1 + ads.length) % ads.length;
+      showAd(currentIndex);
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowRight', 'ArrowDown', 'Enter'].includes(e.key)) {
+        nextAd();
+      } else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+        prevAd();
+      }
+    });
+
+    // Touch swipe navigation
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    });
+
+    window.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 30) prevAd();       // swipe right -> prev
+        else if (diffX < -30) nextAd(); // swipe left -> next
+      } else {
+        if (diffY > 30) prevAd();       // swipe down -> prev
+        else if (diffY < -30) nextAd(); // swipe up -> next
+      }
+    });
+
+    // Load ads once page is ready
+    loadAds();
+  </script>
+
 </body>
 </html>
