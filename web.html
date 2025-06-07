@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute Web Ads - Pexels Dynamic</title>
+  <title>MintMinute Video Test</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -36,113 +36,17 @@
       border-radius: 8px;
       outline: none;
     }
-    #ad-description {
-      text-align: center;
-      margin-top: 12px;
-      font-size: 1.2em;
-      min-height: 2em;
-      max-width: 600px;
-      padding: 0 10px;
-      color: #333;
-    }
-    #loading {
-      font-size: 1.2em;
-      color: #666;
-    }
   </style>
 </head>
 <body>
 
   <div id="ad-container">
-    <div id="loading">Loading videos from Pexels...</div>
+    <video 
+      src="https://player.vimeo.com/external/310176511.sd.mp4?s=fce3f9b268eebeb2ee30e12a04a6f8b19bb74a43&profile_id=165" 
+      autoplay muted loop playsinline controls
+      tabindex="0"
+    ></video>
   </div>
-  <div id="ad-description"></div>
 
-  <script>
-    const API_KEY = 'Fvr7g0FjM17US9YbEGml8tQSb4RSz5R4VLikHdHwEYByWx5fqvk6WK67';
-    let videos = [];
-    let currentIndex = 0;
-
-    const container = document.getElementById('ad-container');
-    const description = document.getElementById('ad-description');
-    const loading = document.getElementById('loading');
-
-    async function fetchVideos() {
-      try {
-        const response = await fetch('https://api.pexels.com/videos/popular?per_page=10', {
-          headers: { Authorization: API_KEY }
-        });
-        if (!response.ok) throw new Error('Failed to fetch videos');
-        const data = await response.json();
-        videos = data.videos;
-        if (videos.length === 0) {
-          loading.textContent = 'No videos found.';
-          return;
-        }
-        loading.style.display = 'none';
-        currentIndex = 0;
-        showVideo(currentIndex);
-      } catch (err) {
-        loading.textContent = 'Error loading videos.';
-        console.error(err);
-      }
-    }
-
-    function showVideo(index) {
-      container.innerHTML = '';
-      const video = videos[index];
-      if (!video) return;
-      // Pick highest quality video file
-      const videoFile = video.video_files.reduce((best, curr) =>
-        curr.width > best.width ? curr : best, video.video_files[0]);
-      const videoElem = document.createElement('video');
-      videoElem.src = videoFile.link;
-      videoElem.autoplay = true;
-      videoElem.loop = true;
-      videoElem.muted = true;
-      videoElem.playsInline = true;
-      container.appendChild(videoElem);
-      description.textContent = video.user.name + ' - ' + (video.url || '');
-    }
-
-    function nextVideo() {
-      currentIndex = (currentIndex + 1) % videos.length;
-      showVideo(currentIndex);
-    }
-
-    function prevVideo() {
-      currentIndex = (currentIndex - 1 + videos.length) % videos.length;
-      showVideo(currentIndex);
-    }
-
-    // Keyboard navigation
-    window.addEventListener('keydown', e => {
-      if (['ArrowRight', 'ArrowDown', 'Enter'].includes(e.key)) nextVideo();
-      else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) prevVideo();
-    });
-
-    // Touch swipe navigation
-    let touchStartX = 0;
-    let touchStartY = 0;
-    window.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    });
-    window.addEventListener('touchend', e => {
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-      const diffX = touchEndX - touchStartX;
-      const diffY = touchEndY - touchStartY;
-      if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (diffX > 30) prevVideo();
-        else if (diffX < -30) nextVideo();
-      } else {
-        if (diffY > 30) prevVideo();
-        else if (diffY < -30) nextVideo();
-      }
-    });
-
-    fetchVideos();
-  </script>
 </body>
 </html>
