@@ -3,66 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute - Watch Ads, Earn Money</title>
+  <title>MintMinute - Watch Ads</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
     h1 { color: #2a9d8f; }
-    .ad-list button { margin: 5px 0; padding: 10px; width: 100%; font-size: 16px; }
-    #ad-player { margin-top: 20px; padding: 20px; border: 1px solid #ccc; display: none; }
-    #earnings { margin-top: 20px; font-weight: bold; }
+    .ad-list video {
+      width: 100%;
+      max-height: 250px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      border: 2px solid #2a9d8f;
+      border-radius: 8px;
+    }
+    #ad-player {
+      margin-top: 20px;
+      display: none;
+      text-align: center;
+    }
+    #ad-player video {
+      width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
   <h1>MintMinute</h1>
-  <p>Watch ads, earn money. Your time, our money.</p>
+  <p>Your time, our money. Watch real ads, no interruptions.</p>
 
+  <h2>Available Ads</h2>
   <div class="ad-list">
-    <h2>Available Ads</h2>
-    <button onclick="startAd(10, 'Ad 1: Cool Gadget')">Watch Ad 1 (10 sec)</button>
-    <button onclick="startAd(15, 'Ad 2: New App')">Watch Ad 2 (15 sec)</button>
-    <button onclick="startAd(8, 'Ad 3: Game Promo')">Watch Ad 3 (8 sec)</button>
+    <video id="ad1" controls preload="metadata" onclick="playAd('ad1')">
+      <source src="ads/ad1.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+
+    <video id="ad2" controls preload="metadata" onclick="playAd('ad2')">
+      <source src="ads/ad2.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+
+    <video id="ad3" controls preload="metadata" onclick="playAd('ad3')">
+      <source src="ads/ad3.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   </div>
 
   <div id="ad-player">
-    <p id="ad-title"></p>
-    <p>Ad time left: <span id="timer">0</span> seconds</p>
-    <button onclick="skipAd()">Skip Ad</button>
+    <h3>Watching Ad</h3>
+    <video id="player-video" controls autoplay></video>
   </div>
 
-  <div id="earnings">Earnings: $0.00</div>
-
   <script>
-    let earnings = 0;
-    let adTimer;
-    let timeLeft = 0;
+    function playAd(adId) {
+      const selectedVideo = document.getElementById(adId);
+      const player = document.getElementById('player-video');
+      const adPlayerDiv = document.getElementById('ad-player');
 
-    function startAd(duration, title) {
-      if(adTimer) clearInterval(adTimer);
-      timeLeft = duration;
-      document.getElementById('ad-title').innerText = title;
-      document.getElementById('timer').innerText = timeLeft;
-      document.getElementById('ad-player').style.display = 'block';
-      adTimer = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').innerText = timeLeft;
-        if(timeLeft <= 0) {
-          clearInterval(adTimer);
-          finishAd();
-        }
-      }, 1000);
-    }
-
-    function finishAd() {
-      document.getElementById('ad-player').style.display = 'none';
-      earnings += 0.05; // 5 cents per ad
-      document.getElementById('earnings').innerText = 'Earnings: $' + earnings.toFixed(2);
-      alert('Ad complete! You earned $0.05');
-    }
-
-    function skipAd() {
-      clearInterval(adTimer);
-      document.getElementById('ad-player').style.display = 'none';
-      alert('You skipped the ad, no earnings this time.');
+      player.src = selectedVideo.querySelector('source').src;
+      adPlayerDiv.style.display = 'block';
+      player.play();
     }
   </script>
 </body>
