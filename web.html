@@ -14,6 +14,8 @@
       align-items: center;
       height: 100vh;
       justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
     #ad-container {
       max-width: 600px;
@@ -27,6 +29,7 @@
       height: 340px;
       user-select: none;
       touch-action: pan-y;
+      border-radius: 8px;
     }
     video, img {
       max-width: 100%;
@@ -34,6 +37,7 @@
       display: block;
       margin: auto;
       border-radius: 8px;
+      outline: none;
     }
     #ad-description {
       text-align: center;
@@ -43,12 +47,13 @@
       max-width: 600px;
       padding: 0 10px;
       color: #333;
+      user-select: none;
     }
   </style>
 </head>
 <body>
 
-  <div id="ad-container">
+  <div id="ad-container" tabindex="0" aria-live="polite" aria-label="Advertisement container">
     <!-- Ad content (video/image) will be injected here -->
   </div>
   <div id="ad-description"></div>
@@ -64,7 +69,7 @@
         const response = await fetch('/ads.json');
         if (!response.ok) throw new Error('Failed to load ads');
         ads = await response.json();
-        if (!ads.length) {
+        if (!Array.isArray(ads) || ads.length === 0) {
           description.textContent = 'No ads available.';
           return;
         }
@@ -77,8 +82,15 @@
     }
 
     function showAd(index) {
+      if (index < 0) {
+        currentIndex = ads.length - 1;
+      } else if (index >= ads.length) {
+        currentIndex = 0;
+      } else {
+        currentIndex = index;
+      }
       container.innerHTML = '';
-      const ad = ads[index];
+      const ad = ads[currentIndex];
 
       if (ad.type === 'video') {
         const video = document.createElement('video');
@@ -88,10 +100,12 @@
         video.muted = true;
         video.playsInline = true;
         video.controls = false;
+        video.setAttribute('aria-label', ad.description || 'Advertisement video');
         container.appendChild(video);
       } else if (ad.type === 'image') {
         const img = document.createElement('img');
         img.src = ad.url;
+        img.alt = ad.description || 'Advertisement image';
         container.appendChild(img);
       } else {
         container.textContent = 'Unsupported ad type.';
@@ -101,18 +115,16 @@
     }
 
     function nextAd() {
-      currentIndex = (currentIndex + 1) % ads.length;
-      showAd(currentIndex);
+      showAd(currentIndex + 1);
     }
 
     function prevAd() {
-      currentIndex = (currentIndex - 1 + ads.length) % ads.length;
-      showAd(currentIndex);
+      showAd(currentIndex - 1);
     }
 
     // Keyboard navigation
     window.addEventListener('keydown', (e) => {
-      if (['ArrowRight', 'ArrowDown', 'Enter'].includes(e.key)) {
+      if (['ArrowRight', 'ArrowDown', 'Enter', ' '].includes(e.key)) {
         nextAd();
       } else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
         prevAd();
@@ -126,7 +138,7 @@
     window.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
-    });
+    }, {passive: true});
 
     window.addEventListener('touchend', (e) => {
       const touchEndX = e.changedTouches[0].screenX;
@@ -135,18 +147,15 @@
       const diffX = touchEndX - touchStartX;
       const diffY = touchEndY - touchStartY;
 
+      const swipeThreshold = 40;
+
       if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (diffX > 30) prevAd();       // swipe right -> prev
-        else if (diffX < -30) nextAd(); // swipe left -> next
+        if (diffX > swipeThreshold) prevAd();       // swipe right -> prev
+        else if (diffX < -swipeThreshold) nextAd(); // swipe left -> next
       } else {
-        if (diffY > 30) prevAd();       // swipe down -> prev
-        else if (diffY < -30) nextAd(); // swipe up -> next
+        if (diffY > swipeThreshold) prevAd();       // swipe down -> prev
+        else if (diffY < -swipeThreshold) nextAd(); // swipe up -> next
       }
-    });
+    }, {passive: true});
 
-    // Load ads once page is ready
-    loadAds();
-  </script>
-
-</body>
-</html>
+    // Load ads once page
