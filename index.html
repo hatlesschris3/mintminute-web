@@ -3,46 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute</title>
+  <title>MintMinute - Watch Ads, Earn Money</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #e0f7fa;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #004d40;
-    }
-    h1 {
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-    .btn {
-      background-color: #00796b;
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      margin: 0.5rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: background-color 0.3s ease;
-    }
-    .btn:hover {
-      background-color: #004d40;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    h1 { color: #2a9d8f; }
+    .ad-list button { margin: 5px 0; padding: 10px; width: 100%; font-size: 16px; }
+    #ad-player { margin-top: 20px; padding: 20px; border: 1px solid #ccc; display: none; }
+    #earnings { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Welcome to MintMinute</h1>
-  <p>Your time, our money.</p>
-  <a href="web.html" class="btn">Use Web App</a>
-  <a href="download.html" class="btn">Download App</a>
+  <h1>MintMinute</h1>
+  <p>Watch ads, earn money. Your time, our money.</p>
+
+  <div class="ad-list">
+    <h2>Available Ads</h2>
+    <button onclick="startAd(10, 'Ad 1: Cool Gadget')">Watch Ad 1 (10 sec)</button>
+    <button onclick="startAd(15, 'Ad 2: New App')">Watch Ad 2 (15 sec)</button>
+    <button onclick="startAd(8, 'Ad 3: Game Promo')">Watch Ad 3 (8 sec)</button>
+  </div>
+
+  <div id="ad-player">
+    <p id="ad-title"></p>
+    <p>Ad time left: <span id="timer">0</span> seconds</p>
+    <button onclick="skipAd()">Skip Ad</button>
+  </div>
+
+  <div id="earnings">Earnings: $0.00</div>
+
+  <script>
+    let earnings = 0;
+    let adTimer;
+    let timeLeft = 0;
+
+    function startAd(duration, title) {
+      if(adTimer) clearInterval(adTimer);
+      timeLeft = duration;
+      document.getElementById('ad-title').innerText = title;
+      document.getElementById('timer').innerText = timeLeft;
+      document.getElementById('ad-player').style.display = 'block';
+      adTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+        if(timeLeft <= 0) {
+          clearInterval(adTimer);
+          finishAd();
+        }
+      }, 1000);
+    }
+
+    function finishAd() {
+      document.getElementById('ad-player').style.display = 'none';
+      earnings += 0.05; // 5 cents per ad
+      document.getElementById('earnings').innerText = 'Earnings: $' + earnings.toFixed(2);
+      alert('Ad complete! You earned $0.05');
+    }
+
+    function skipAd() {
+      clearInterval(adTimer);
+      document.getElementById('ad-player').style.display = 'none';
+      alert('You skipped the ad, no earnings this time.');
+    }
+  </script>
 </body>
 </html>
