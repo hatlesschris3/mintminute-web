@@ -5,8 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MintMinute - Watch Ads</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; text-align: center; }
-  h1 { color: #2a9d8f; }
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+    background: #f9f9f9;
+  }
+  h1 {
+    color: #2a9d8f;
+    margin-bottom: 0.2em;
+  }
   video {
     width: 100%;
     max-height: 300px;
@@ -14,14 +24,17 @@
     border-radius: 8px;
     outline: none;
   }
-  p { margin-top: 10px; color: #555; }
+  p {
+    margin-top: 10px;
+    color: #555;
+  }
 </style>
 </head>
 <body>
   <h1>MintMinute</h1>
   <p>Your time, our money.</p>
 
-  <video id="adVideo" autoplay loop muted playsinline tabindex="0">
+  <video id="adVideo" autoplay muted loop playsinline tabindex="0" aria-label="Ad video player">
     <source src="ads/ad1.mp4" type="video/mp4" />
     Your browser does not support the video tag.
   </video>
@@ -45,8 +58,15 @@
     } else {
       currentIndex = index;
     }
-    video.src = ads[currentIndex];
-    video.play();
+    // Change source properly for video element
+    if (video.querySelector('source')) {
+      video.querySelector('source').src = ads[currentIndex];
+      video.load();
+      video.play();
+    } else {
+      video.src = ads[currentIndex];
+      video.play();
+    }
   }
 
   // Keyboard navigation
@@ -59,11 +79,9 @@
     }
   });
 
-  // Swipe detection
+  // Swipe detection on the video element
   let touchStartX = 0;
   let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
 
   video.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -71,33 +89,33 @@
   }, false);
 
   video.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    touchEndY = e.changedTouches[0].screenY;
+    const touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
 
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
 
-    // Simple threshold to detect swipe direction
+    // Thresholds for swipe detection
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 30) {
+      if (diffX > 40) {
         // Swipe right -> previous ad
         showAd(currentIndex - 1);
-      } else if (diffX < -30) {
+      } else if (diffX < -40) {
         // Swipe left -> next ad
         showAd(currentIndex + 1);
       }
     } else {
-      if (diffY > 30) {
+      if (diffY > 40) {
         // Swipe down -> next ad
         showAd(currentIndex + 1);
-      } else if (diffY < -30) {
+      } else if (diffY < -40) {
         // Swipe up -> previous ad
         showAd(currentIndex - 1);
       }
     }
   }, false);
 
-  // Init first ad
+  // Initialize first ad
   showAd(currentIndex);
 </script>
 </body>
