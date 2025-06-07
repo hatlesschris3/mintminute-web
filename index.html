@@ -1,69 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MintMinute - Watch Ads</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-    h1 { color: #2a9d8f; }
-    .ad-list video {
-      width: 100%;
-      max-height: 250px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      border: 2px solid #2a9d8f;
-      border-radius: 8px;
-    }
-    #ad-player {
-      margin-top: 20px;
-      display: none;
-      text-align: center;
-    }
-    #ad-player video {
-      width: 100%;
-      max-height: 300px;
-      border-radius: 8px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MintMinute - Watch Ads</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; text-align: center; }
+  h1 { color: #2a9d8f; }
+  video {
+    width: 100%;
+    max-height: 300px;
+    border: 2px solid #2a9d8f;
+    border-radius: 8px;
+    outline: none;
+  }
+  p { margin-top: 10px; color: #555; }
+</style>
 </head>
 <body>
   <h1>MintMinute</h1>
-  <p>Your time, our money. Watch real ads, no interruptions.</p>
+  <p>Your time, our money.</p>
 
-  <h2>Available Ads</h2>
-  <div class="ad-list">
-    <video id="ad1" controls preload="metadata" onclick="playAd('ad1')">
-      <source src="ads/ad1.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
+  <video id="adVideo" autoplay loop muted playsinline tabindex="0">
+    <source src="ads/ad1.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <p>Swipe or use arrow keys to change ads</p>
 
-    <video id="ad2" controls preload="metadata" onclick="playAd('ad2')">
-      <source src="ads/ad2.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
+<script>
+  const ads = [
+    "ads/ad1.mp4",
+    "ads/ad2.mp4",
+    "ads/ad3.mp4"
+  ];
+  let currentIndex = 0;
 
-    <video id="ad3" controls preload="metadata" onclick="playAd('ad3')">
-      <source src="ads/ad3.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-  </div>
+  const video = document.getElementById('adVideo');
 
-  <div id="ad-player">
-    <h3>Watching Ad</h3>
-    <video id="player-video" controls autoplay></video>
-  </div>
-
-  <script>
-    function playAd(adId) {
-      const selectedVideo = document.getElementById(adId);
-      const player = document.getElementById('player-video');
-      const adPlayerDiv = document.getElementById('ad-player');
-
-      player.src = selectedVideo.querySelector('source').src;
-      adPlayerDiv.style.display = 'block';
-      player.play();
+  function showAd(index) {
+    if (index < 0) {
+      currentIndex = ads.length - 1;
+    } else if (index >= ads.length) {
+      currentIndex = 0;
+    } else {
+      currentIndex = index;
     }
-  </script>
+    video.src = ads[currentIndex];
+    video.play();
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'ArrowDown', 'Enter'].includes(e.key)) {
+      showAd(currentIndex + 1);
+    }
+    if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+      showAd(currentIndex - 1);
+    }
+  });
+
+  // Swipe detection
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+
+  video.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, false);
+
+  video.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    // Simple threshold to detect swipe direction
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 30) {
+        // Swipe right -> previous ad
+        showAd(currentIndex - 1);
+      } else if (diffX < -30) {
+        // Swipe left -> next ad
+        showAd(currentIndex + 1);
+      }
+    } else {
+      if (diffY > 30) {
+        // Swipe down -> next ad
+        showAd(currentIndex + 1);
+      } else if (diffY < -30) {
+        // Swipe up -> previous ad
+        showAd(currentIndex - 1);
+      }
+    }
+  }, false);
+
+  // Init first ad
+  showAd(currentIndex);
+</script>
 </body>
 </html>
