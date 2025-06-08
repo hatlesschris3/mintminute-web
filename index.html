@@ -103,34 +103,29 @@
         loadAd(currentIndex);
       });
 
-    // Swiping Logic
-    let startY = 0;
-    let endY = 0;
+    let startY = null;
 
     adContainer.addEventListener("touchstart", e => {
       startY = e.touches[0].clientY;
-    });
+    }, { passive: true });
 
     adContainer.addEventListener("touchend", e => {
-      endY = e.changedTouches[0].clientY;
-      handleSwipe();
-    });
+      const endY = e.changedTouches[0].clientY;
+      handleSwipe(startY - endY);
+    }, { passive: true });
 
     adContainer.addEventListener("mousedown", e => {
       startY = e.clientY;
     });
 
     adContainer.addEventListener("mouseup", e => {
-      endY = e.clientY;
-      handleSwipe();
+      handleSwipe(startY - e.clientY);
     });
 
-    function handleSwipe() {
-      const delta = startY - endY;
-      if (Math.abs(delta) > 50) {
-        if (delta > 0) loadAd(currentIndex + 1); // swipe up
-        else loadAd(currentIndex - 1);           // swipe down
-      }
+    function handleSwipe(deltaY) {
+      if (Math.abs(deltaY) < 50) return;
+      if (deltaY > 0) loadAd(currentIndex + 1);
+      else loadAd(currentIndex - 1);
     }
   </script>
 
