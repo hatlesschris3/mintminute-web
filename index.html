@@ -5,141 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
   <style>
-    body {
+    * {
       margin: 0;
-      background-color: #303C37;
-      color: #ffffff;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
       font-family: Arial, sans-serif;
+      background-color: #000;
+      overflow: hidden;
     }
 
-    header {
-      display: flex;
-      align-items: center;
-      padding: 20px;
-    }
-
-    #logo {
-      width: 50px;
-      height: auto;
-      margin-right: 15px;
-    }
-
-    #title {
-      font-size: 1.8em;
-      font-weight: bold;
-    }
-
-    main {
+    #adContainer {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 30px;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
     }
 
     iframe {
-      width: 90%;
-      max-width: 700px;
-      height: 400px;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 9 / 16;
+      max-height: 100vh;
       border: none;
-      border-radius: 10px;
-      margin-bottom: 20px;
       background: black;
     }
 
-    button {
-      margin: 8px;
-      padding: 12px 24px;
-      font-size: 16px;
-      background-color: #065633;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
+    .overlay {
+      position: absolute;
+      bottom: 40px;
+      left: 20px;
+      right: 20px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+      font-size: 1.2em;
+      z-index: 2;
+      text-align: left;
     }
 
-    button:hover {
-      background-color: #088b5c;
+    .overlay a {
+      color: #22ff88;
+      text-decoration: underline;
+      font-weight: bold;
+      display: block;
+      margin-top: 5px;
     }
 
-    #video-container {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #adTitle {
-      margin: 10px 0;
-    }
-
-    #adLink {
-      background-color: #065633;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      text-decoration: none;
-      margin-top: 10px;
-      display: inline-block;
-    }
-
-    #adLink:hover {
-      background-color: #088b5c;
+    @media (min-width: 768px) {
+      iframe {
+        aspect-ratio: 16 / 9;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <img id="logo" src="logo.png" alt="MintMinute Logo" />
-    <div id="title">MintMinute</div>
-  </header>
-
-  <main>
-    <button id="startBtn">Start Watching</button>
-
-    <div id="video-container">
-      <h2 id="adTitle">Loading Ad...</h2>
-      <iframe
-        id="ytPlayer"
-        src=""
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        title="YouTube video player"
-      ></iframe>
-
+  <div id="adContainer">
+    <iframe id="ytPlayer" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div class="overlay">
+      <div id="adTitle">Loading...</div>
       <a id="adLink" href="#" target="_blank">Visit Product</a>
-
-      <div>
-        <button id="prevBtn">Previous</button>
-        <button id="nextBtn">Next</button>
-      </div>
     </div>
-  </main>
+  </div>
 
   <script>
     let ads = [];
     let currentIndex = 0;
 
     const player = document.getElementById("ytPlayer");
-    const container = document.getElementById("video-container");
-    const startBtn = document.getElementById("startBtn");
-
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-
     const adTitle = document.getElementById("adTitle");
     const adLink = document.getElementById("adLink");
+    const adContainer = document.getElementById("adContainer");
 
-    function loadVideo(index) {
-      if (ads.length === 0) return;
+    function loadAd(index) {
+      if (!ads.length) return;
 
       if (index < 0) index = ads.length - 1;
       else if (index >= ads.length) index = 0;
       currentIndex = index;
 
       const ad = ads[currentIndex];
-      player.src = `${ad.video}?autoplay=1&rel=0&modestbranding=1`;
+      player.src = `${ad.video}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
       adTitle.innerText = ad.title || "Untitled Ad";
       adLink.href = ad.link || "#";
     }
@@ -148,15 +100,38 @@
       .then(res => res.json())
       .then(data => {
         ads = data;
+        loadAd(currentIndex);
       });
 
-    prevBtn.addEventListener("click", () => loadVideo(currentIndex - 1));
-    nextBtn.addEventListener("click", () => loadVideo(currentIndex + 1));
-    startBtn.addEventListener("click", () => {
-      startBtn.style.display = "none";
-      container.style.display = "flex";
-      loadVideo(currentIndex);
+    // Swiping Logic
+    let startY = 0;
+    let endY = 0;
+
+    adContainer.addEventListener("touchstart", e => {
+      startY = e.touches[0].clientY;
     });
+
+    adContainer.addEventListener("touchend", e => {
+      endY = e.changedTouches[0].clientY;
+      handleSwipe();
+    });
+
+    adContainer.addEventListener("mousedown", e => {
+      startY = e.clientY;
+    });
+
+    adContainer.addEventListener("mouseup", e => {
+      endY = e.clientY;
+      handleSwipe();
+    });
+
+    function handleSwipe() {
+      const delta = startY - endY;
+      if (Math.abs(delta) > 50) {
+        if (delta > 0) loadAd(currentIndex + 1); // swipe up
+        else loadAd(currentIndex - 1);           // swipe down
+      }
+    }
   </script>
 
 </body>
