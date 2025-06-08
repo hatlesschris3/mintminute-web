@@ -1,80 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MintMinute YouTube Ads</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    max-width: 700px;
-    text-align: center;
-  }
-  iframe {
-    width: 100%;
-    height: 400px;
-    border: none;
-    border-radius: 8px;
-  }
-  button {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MintMinute</title>
+  <style>
+    body {
+      background-color: #303C37;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    #logo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 60px;
+    }
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 100px;
+    }
+    iframe {
+      width: 80vw;
+      height: 45vw;
+      max-width: 800px;
+      max-height: 450px;
+      border: none;
+    }
+    .ad-link {
+      background-color: #065633;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-top: 15px;
+      display: inline-block;
+    }
+  </style>
 </head>
 <body>
+  <img id="logo" src="logo.png" alt="Logo" />
+  <div class="video-container">
+    <h1 id="ad-title">Loading Ad...</h1>
+    <iframe id="ad-video" src="" allowfullscreen muted></iframe>
+    <a id="ad-link" class="ad-link" href="#" target="_blank">Visit Product</a>
+  </div>
 
-<h1>MintMinute - YouTube Ads Test</h1>
+  <script>
+    let ads = [];
+    let currentAdIndex = 0;
 
-<div id="video-container">
-  <iframe
-    id="ytPlayer"
-    src=""
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    allowfullscreen
-    title="YouTube video player"
-  ></iframe>
-</div>
+    fetch('ads.json')
+      .then(res => res.json())
+      .then(data => {
+        ads = data;
+        showAd();
+      });
 
-<div>
-  <button id="prevBtn">Previous</button>
-  <button id="nextBtn">Next</button>
-</div>
+    function showAd() {
+      if (ads.length === 0) return;
 
-<script>
-  // List of YouTube video IDs to cycle through
-  const videos = [
-    "dQw4w9WgXcQ", // Rick Astley - Never Gonna Give You Up (classic test video)
-    "kJQP7kiw5Fk", // Luis Fonsi - Despacito
-    "3JZ_D3ELwOQ", // Mark Ronson - Uptown Funk ft. Bruno Mars
-  ];
+      const ad = ads[currentAdIndex];
+      document.getElementById('ad-title').innerText = ad.title;
+      document.getElementById('ad-video').src = ad.video + '?autoplay=1&mute=0';
+      document.getElementById('ad-link').href = ad.link;
 
-  let currentIndex = 0;
-  const player = document.getElementById("ytPlayer");
-
-  function loadVideo(index) {
-    if (index < 0) index = videos.length - 1;
-    else if (index >= videos.length) index = 0;
-    currentIndex = index;
-    const videoId = videos[currentIndex];
-    // Embed URL with autoplay on and modest branding
-    player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&modestbranding=1&rel=0`;
-  }
-
-  document.getElementById("prevBtn").addEventListener("click", () => {
-    loadVideo(currentIndex - 1);
-  });
-
-  document.getElementById("nextBtn").addEventListener("click", () => {
-    loadVideo(currentIndex + 1);
-  });
-
-  // Load first video on page load
-  loadVideo(currentIndex);
-</script>
-
+      // Loop to next ad every 30 seconds
+      setTimeout(() => {
+        currentAdIndex = (currentAdIndex + 1) % ads.length;
+        showAd();
+      }, 30000);
+    }
+  </script>
 </body>
 </html>
