@@ -1,32 +1,98 @@
-<!-- Add this just above the closing </body> tag -->
-<div style="margin-top: 30px;">
-  <h3>Preference Key</h3>
-  <p id="prefKeyDisplay">Loading...</p>
-  <input id="newPrefKey" placeholder="Paste new Preference Key" />
-  <button onclick="applyPrefKey()">Apply</button>
-  <button onclick="resetPrefKey()">Reset to Default</button>
-</div>
-
-<script src="user.js"></script>
-<script>
-  const user = loadUser();
-  if (user) {
-    document.getElementById('prefKeyDisplay').innerText = user.prefKey;
-  }
-
-  function applyPrefKey() {
-    const key = document.getElementById('newPrefKey').value.trim();
-    if (key.length > 0) {
-      setPrefKey(key);
-      document.getElementById('prefKeyDisplay').innerText = key;
-      alert("Preference Key updated.");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MintMinute</title>
+  <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
+  <script src="user.js"></script>
+  <style>
+    body {
+      background-color: #303C37;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
     }
-  }
+    #logo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 60px;
+    }
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 100px;
+    }
+    #applixir_video_ad {
+      width: 80vw;
+      max-width: 640px;
+      background: #000;
+    }
+    .ad-link {
+      background-color: #065633;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-top: 15px;
+      display: inline-block;
+    }
+    .balance-display {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <img id="logo" src="logo.png" alt="Logo" />
+  <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
+  <div class="video-container">
+    <h1 id="ad-title">Watch this ad and earn!</h1>
+    <div id="applixir_video_ad"></div>
+    <a class="ad-link" href="https://mintminute.co/" target="_blank">Visit Product</a>
+  </div>
 
-  function resetPrefKey() {
-    const defaultKey = "TCH3-GME2-TY1";
-    setPrefKey(defaultKey);
-    document.getElementById('prefKeyDisplay').innerText = defaultKey;
-    alert("Reset to default Preference Key.");
-  }
-</script>
+  <script>
+    function updateBalanceDisplay() {
+      document.getElementById('balance').textContent = getUserBalance();
+    }
+
+    function showAppLixirAd() {
+      const config = {
+        zoneId: 2050,
+        playerId: 'applixir_video_ad',
+        width: 640,
+        height: 360,
+        siteId: 9509,
+        accountId: 8943,
+        callback: function (status) {
+          if (status === "adCompleted") {
+            updateBalance(0.10);
+            updateBalanceDisplay();
+            alert("+£0.10 added to your balance!");
+          } else {
+            console.log("Ad not completed.");
+          }
+        }
+      };
+      showVideoAd(config);
+    }
+
+    window.onload = () => {
+      if (!loadUser()) createUser("Guest", 13);
+      updateBalanceDisplay();
+      showAppLixirAd();
+    };
+  </script>
+</body>
+</html>
