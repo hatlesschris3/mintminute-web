@@ -26,6 +26,7 @@
       flex-direction: column;
       height: 100vh;
       position: relative;
+      overflow: hidden;
     }
 
     #header {
@@ -53,6 +54,7 @@
       padding: 20px;
       transition: right 0.3s ease-in-out;
       z-index: 10;
+      overflow-y: auto;
     }
 
     #sidebar.active {
@@ -76,18 +78,76 @@
       border: none;
     }
 
+    #adContainer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
     #applixir_video_ad {
-      width: 90%;
+      width: 100%;
       height: auto;
       max-width: 640px;
-      margin: auto;
       background: #000;
-      flex: 1;
+    }
+
+    #ageGate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    #ageGate input {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+    }
+
+    #ageGate button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #065633;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #historyList {
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+
+    #historyList li {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="appContainer">
+  <div id="ageGate">
+    <h2>Enter Your Age</h2>
+    <input type="number" id="ageInputPrompt" placeholder="Enter age" />
+    <button onclick="submitAge()">Continue</button>
+  </div>
+
+  <div id="appContainer" style="display:none;">
     <div id="header">
       <div>MintMinute</div>
       <div id="settingsBtn">&#9776;</div>
@@ -109,11 +169,16 @@
         <input type="text" id="prefKeyInput" disabled>
 
         <button onclick="saveAccountInfo()">Save</button>
-        <button onclick="resetUser(); populateFields();">Reset Account</button>
+        <button onclick="resetUser(); location.reload();">Reset Account</button>
+
+        <h3>Earnings History</h3>
+        <ul id="historyList"></ul>
       </div>
     </div>
 
-    <div id="applixir_video_ad"></div>
+    <div id="adContainer">
+      <div id="applixir_video_ad"></div>
+    </div>
   </div>
 
   <script>
@@ -130,6 +195,14 @@
         document.getElementById('ageInput').value = user.age;
         document.getElementById('balanceDisplay').textContent = `£${user.balance.toFixed(2)}`;
         document.getElementById('prefKeyInput').value = user.prefKey;
+
+        const historyEl = document.getElementById('historyList');
+        historyEl.innerHTML = '';
+        (user.history || []).forEach(entry => {
+          const li = document.createElement('li');
+          li.textContent = `${entry.timestamp}: +£${entry.amount.toFixed(2)}`;
+          historyEl.appendChild(li);
+        });
       }
     }
 
@@ -154,19 +227,67 @@
         callback: function (status) {
           if (status === "adCompleted") {
             updateBalance(0.10);
+            const user = loadUser();
+            user.history = user.history || [];
+            user.history.push({ amount: 0.10, timestamp: new Date().toLocaleString() });
+            saveUser(user);
             populateFields();
             alert("+£0.10 added to your balance!");
-            showAppLixirAd(); // Load next ad after one completes
           }
         }
       };
       showVideoAd(config);
     }
 
-    window.onload = () => {
-      if (!loadUser()) createUser("Guest", 13);
+    let startY = 0;
+    let endY = 0;
+
+    document.getElementById('adContainer').addEventListener("touchstart", (e) => {
+      startY = e.touches[0].clientY;
+    });
+
+    document.getElementById('adContainer').addEventListener("touchend", (e) => {
+      endY = e.changedTouches[0].clientY;
+      handleSwipe();
+    });
+
+    document.getElementById('adContainer').addEventListener("mousedown", (e) => {
+      startY = e.clientY;
+    });
+
+    document.getElementById('adContainer').addEventListener("mouseup", (e) => {
+      endY = e.clientY;
+      handleSwipe();
+    });
+
+    function handleSwipe() {
+      const delta = startY - endY;
+      if (Math.abs(delta) > 50) {
+        showAppLixirAd();
+      }
+    }
+
+    function submitAge() {
+      const age = parseInt(document.getElementById('ageInputPrompt').value);
+      if (isNaN(age) || age <= 0) {
+        alert("Please enter a valid age.");
+        return;
+      }
+      createUser("Guest", age);
+      document.getElementById("ageGate").style.display = "none";
+      document.getElementById("appContainer").style.display = "flex";
       populateFields();
       showAppLixirAd();
+    }
+
+    window.onload = () => {
+      const user = loadUser();
+      if (user) {
+        document.getElementById("ageGate").style.display = "none";
+        document.getElementById("appContainer").style.display = "flex";
+        populateFields();
+        showAppLixirAd();
+      }
     };
   </script>
 </body>
