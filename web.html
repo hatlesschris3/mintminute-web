@@ -2,43 +2,155 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
   <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <script src="user.js"></script>
   <style>
-    body { background-color: #303C37; color: white; font-family: sans-serif; margin: 0; padding: 0; text-align: center; }
-    #logo { position: absolute; top: 10px; left: 10px; width: 60px; }
-    .menu { position: absolute; top: 10px; right: 10px; font-size:24px; cursor:pointer; }
-    #sidebar { position: fixed; top:0; right:-260px; width:260px; height:100%; background:#222; transition: right 0.3s; padding:20px; z-index:10; }
-    #sidebar.open { right:0 }
-    #sidebar input, button { width:100%; margin:8px 0; padding:6px; }
-    #adContainer { padding-top:80px; }
-    #applixir_video_ad { width:90%; max-width:640px; margin:auto; background:#000; }
-    .balance-display { margin-top:10px; font-size:1em; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      overflow: hidden;
+    }
+
+    #appContainer {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #header {
+      background: #111;
+      padding: 10px 15px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #settingsBtn {
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #222;
+      color: white;
+      padding: 20px;
+      transition: right 0.3s ease-in-out;
+      z-index: 10;
+    }
+
+    #sidebar.active {
+      right: 0;
+    }
+
+    .overlay {
+      padding: 10px;
+    }
+
+    .overlay label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .overlay input {
+      width: 100%;
+      margin-top: 5px;
+      padding: 5px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    #adContainer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #applixir_video_ad {
+      width: 100%;
+      height: auto;
+      max-width: 640px;
+      background: #000;
+    }
   </style>
 </head>
 <body>
-  <img id="logo" src="logo.png" alt="Logo" />
-  <div class="menu" onclick="toggleSidebar()">☰</div>
+  <div id="appContainer">
+    <div id="header">
+      <div>MintMinute</div>
+      <div id="settingsBtn">&#9776;</div>
+    </div>
 
-  <div id="sidebar">
-    <h3>Account Settings</h3>
-    <input id="usernameInput" placeholder="Username" />
-    <input id="ageInput" placeholder="Age" type="number" />
-    <input id="prefKeyInput" placeholder="Preference Key" />
-    <button onclick="saveSettings()">Save</button>
-    <button onclick="resetUser()">Reset Account</button>
-  </div>
+    <div id="sidebar">
+      <h2>Account Settings</h2>
+      <div class="overlay">
+        <label>Username:</label>
+        <input type="text" id="usernameInput">
 
-  <div id="adContainer">
-    <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
-    <div id="applixir_video_ad"></div>
+        <label>Age:</label>
+        <input type="number" id="ageInput">
+
+        <label>Balance:</label>
+        <div id="balanceDisplay">£0.00</div>
+
+        <label>Preference Key:</label>
+        <input type="text" id="prefKeyInput" disabled>
+
+        <button onclick="saveAccountInfo()">Save</button>
+        <button onclick="resetUser(); location.reload();">Reset Account</button>
+      </div>
+    </div>
+
+    <div id="adContainer">
+      <div id="applixir_video_ad"></div>
+    </div>
   </div>
 
   <script>
-    function updateBalanceDisplay() {
-      document.getElementById('balance').textContent = getUserBalance();
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    document.getElementById('settingsBtn').addEventListener('click', toggleSidebar);
+
+    function populateFields() {
+      const user = loadUser();
+      if (user) {
+        document.getElementById('usernameInput').value = user.username;
+        document.getElementById('ageInput').value = user.age;
+        document.getElementById('balanceDisplay').textContent = `£${user.balance.toFixed(2)}`;
+        document.getElementById('prefKeyInput').value = user.prefKey;
+      }
+    }
+
+    function saveAccountInfo() {
+      const username = document.getElementById('usernameInput').value;
+      const age = parseInt(document.getElementById('ageInput').value);
+      const user = loadUser() || {};
+      user.username = username;
+      user.age = age;
+      saveUser(user);
+      populateFields();
     }
 
     function showAppLixirAd() {
@@ -52,51 +164,47 @@
         callback: function (status) {
           if (status === "adCompleted") {
             updateBalance(0.10);
-            updateBalanceDisplay();
+            populateFields();
+            alert("+£0.10 added to your balance!");
           }
         }
       };
       showVideoAd(config);
     }
 
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      const u = loadUser();
-      if (u) {
-        usernameInput.value = u.username;
-        ageInput.value = u.age;
-        prefKeyInput.value = u.prefKey;
-      }
-    }
+    let startY = 0;
+    let endY = 0;
 
-    function saveSettings() {
-      const u = loadUser();
-      u.username = usernameInput.value;
-      u.age = +ageInput.value;
-      u.prefKey = prefKeyInput.value;
-      saveUser(u);
-      alert('Settings saved');
-      toggleSidebar();
-      updateBalanceDisplay();
+    document.getElementById('adContainer').addEventListener("touchstart", (e) => {
+      startY = e.touches[0].clientY;
+    });
+
+    document.getElementById('adContainer').addEventListener("touchend", (e) => {
+      endY = e.changedTouches[0].clientY;
+      handleSwipe();
+    });
+
+    document.getElementById('adContainer').addEventListener("mousedown", (e) => {
+      startY = e.clientY;
+    });
+
+    document.getElementById('adContainer').addEventListener("mouseup", (e) => {
+      endY = e.clientY;
+      handleSwipe();
+    });
+
+    function handleSwipe() {
+      const delta = startY - endY;
+      if (Math.abs(delta) > 50) {
+        showAppLixirAd();
+      }
     }
 
     window.onload = () => {
-      if (!loadUser()) {
-        createUser('Guest', 13);
-      }
-      updateBalanceDisplay();
-      populateSidebar(); // ensure fields are loaded
+      if (!loadUser()) createUser("Guest", 13);
+      populateFields();
       showAppLixirAd();
     };
-
-    function populateSidebar() {
-      const u = loadUser();
-      if (u) {
-        usernameInput.value = u.username;
-        ageInput.value = u.age;
-        prefKeyInput.value = u.prefKey;
-      }
-    }
   </script>
 </body>
 </html>
