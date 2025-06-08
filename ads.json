@@ -1,20 +1,17 @@
 [
   {
-    "title": "Cool Shoes",
-    "video": "https://www.youtube.com/embed/VIDEO_ID1",
-    "link": "https://shop.coolshoes.com",
-    "tags": ["shoes", "fashion"]
+    "title": "Earn with MintMinute",
+    "video": "https://mintminute.co/ads/applixir-placeholder.mp4",
+    "link": "https://mintminute.co"
   },
   {
-    "title": "Epic Laptop",
-    "video": "https://www.youtube.com/embed/VIDEO_ID2",
-    "link": "https://epiclaptops.com",
-    "tags": ["tech", "laptops"]
+    "title": "Instant Rewards",
+    "video": "https://mintminute.co/ads/applixir-rewards.mp4",
+    "link": "https://mintminute.co/rewards"
   },
   {
-    "title": "Gaming Chair",
-    "video": "https://www.youtube.com/embed/VIDEO_ID3",
-    "link": "https://gamegearstore.com",
-    "tags": ["gaming", "comfort"]
+    "title": "Cash Out Easily",
+    "video": "https://mintminute.co/ads/applixir-cashout.mp4",
+    "link": "https://mintminute.co/cashout"
   }
 ]
