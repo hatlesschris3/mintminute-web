@@ -28,12 +28,12 @@
       position: relative;
     }
 
-    iframe {
+    video {
       width: 100%;
       height: 100%;
       aspect-ratio: 9 / 16;
       max-height: 100vh;
-      border: none;
+      object-fit: cover;
       background: black;
     }
 
@@ -58,7 +58,7 @@
     }
 
     @media (min-width: 768px) {
-      iframe {
+      video {
         aspect-ratio: 16 / 9;
       }
     }
@@ -67,7 +67,7 @@
 <body>
 
   <div id="adContainer">
-    <iframe id="ytPlayer" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <video id="videoPlayer" autoplay muted playsinline></video>
     <div class="overlay">
       <div id="adTitle">Loading...</div>
       <a id="adLink" href="#" target="_blank">Visit Product</a>
@@ -78,7 +78,7 @@
     let ads = [];
     let currentIndex = 0;
 
-    const player = document.getElementById("ytPlayer");
+    const player = document.getElementById("videoPlayer");
     const adTitle = document.getElementById("adTitle");
     const adLink = document.getElementById("adLink");
     const adContainer = document.getElementById("adContainer");
@@ -91,9 +91,11 @@
       currentIndex = index;
 
       const ad = ads[currentIndex];
-      player.src = `${ad.video}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+      player.src = ad.video;
       adTitle.innerText = ad.title || "Untitled Ad";
       adLink.href = ad.link || "#";
+      player.load();
+      player.play();
     }
 
     fetch("ads.json")
@@ -127,6 +129,12 @@
       if (deltaY > 0) loadAd(currentIndex + 1);
       else loadAd(currentIndex - 1);
     }
+
+    window.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") loadAd(currentIndex + 1);
+      else if (e.key === "ArrowUp") loadAd(currentIndex - 1);
+      else if (e.key === "Enter") player.play();
+    });
   </script>
 
 </body>
