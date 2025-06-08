@@ -1,17 +1,191 @@
-[
-  {
-    "title": "Earn with MintMinute",
-    "video": "https://mintminute.co/ads/applixir-placeholder.mp4",
-    "link": "https://mintminute.co"
-  },
-  {
-    "title": "Instant Rewards",
-    "video": "https://mintminute.co/ads/applixir-rewards.mp4",
-    "link": "https://mintminute.co/rewards"
-  },
-  {
-    "title": "Cash Out Easily",
-    "video": "https://mintminute.co/ads/applixir-cashout.mp4",
-    "link": "https://mintminute.co/cashout"
-  }
-]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MintMinute</title>
+  <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      overflow: hidden;
+    }
+
+    #adContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    #applixir_video_ad {
+      width: 90%;
+      height: auto;
+      max-width: 640px;
+      background: #000;
+    }
+
+    .overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+      font-size: 1em;
+      z-index: 2;
+      text-align: left;
+    }
+
+    .overlay a {
+      color: #22ff88;
+      text-decoration: underline;
+      font-weight: bold;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .balance-display {
+      position: absolute;
+      top: 10px;
+      right: 50px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1em;
+    }
+
+    .menu-icon {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: white;
+      z-index: 5;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      height: 100%;
+      width: 250px;
+      background-color: #222;
+      color: white;
+      padding: 20px;
+      transition: left 0.3s ease;
+      z-index: 10;
+    }
+
+    .sidebar.open {
+      left: 0;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+    }
+
+    .sidebar input, .sidebar button {
+      margin: 8px 0;
+      padding: 6px;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      #applixir_video_ad {
+        max-height: 80vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-icon" onclick="toggleSidebar()">☰</div>
+  <div class="sidebar" id="sidebar">
+    <h3>Account Settings</h3>
+    <input id="usernameInput" placeholder="Username" />
+    <input id="ageInput" placeholder="Age" type="number" />
+    <input id="prefKeyInput" placeholder="Preference Key" />
+    <button onclick="saveSettings()">Save</button>
+    <button onclick="resetUser()">Reset Account</button>
+  </div>
+
+  <div id="adContainer">
+    <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
+    <div id="applixir_video_ad"></div>
+    <div class="overlay">
+      <div id="adTitle">Watch this ad and earn!</div>
+      <a id="adLink" href="https://mintminute.co/" target="_blank">Visit MintMinute</a>
+    </div>
+  </div>
+
+  <script src="user.js"></script>
+  <script>
+    function updateBalanceDisplay() {
+      document.getElementById('balance').textContent = getUserBalance();
+    }
+
+    function showAppLixirAd() {
+      const config = {
+        zoneId: 2050,
+        playerId: 'applixir_video_ad',
+        width: 640,
+        height: 480,
+        siteId: 9509,
+        accountId: 8943,
+        callback: function (status) {
+          if (status === "adCompleted") {
+            updateBalance(0.10);
+            updateBalanceDisplay();
+            alert("+£0.10 added to your balance!");
+          } else {
+            console.log("Ad not completed.");
+          }
+        }
+      };
+      showVideoAd(config);
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      const user = loadUser();
+      if (user) {
+        document.getElementById('usernameInput').value = user.username;
+        document.getElementById('ageInput').value = user.age;
+        document.getElementById('prefKeyInput').value = user.prefKey;
+      }
+    }
+
+    function saveSettings() {
+      const username = document.getElementById('usernameInput').value;
+      const age = parseInt(document.getElementById('ageInput').value);
+      const prefKey = document.getElementById('prefKeyInput').value;
+      const user = loadUser() || {};
+      user.username = username;
+      user.age = age;
+      user.prefKey = prefKey;
+      saveUser(user);
+      alert("Settings saved.");
+      toggleSidebar();
+    }
+
+    window.onload = () => {
+      updateBalanceDisplay();
+      showAppLixirAd();
+    };
+  </script>
+</body>
+</html>
