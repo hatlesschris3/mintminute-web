@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
+  <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -23,18 +24,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       width: 100vw;
       position: relative;
     }
 
-    video {
+    #applixir_video_ad {
       width: 100%;
-      height: 100%;
-      aspect-ratio: 9 / 16;
-      max-height: 100vh;
-      object-fit: cover;
-      background: black;
+      height: auto;
+      max-width: 720px;
+      background: #000;
     }
 
     .overlay {
@@ -58,84 +58,46 @@
     }
 
     @media (min-width: 768px) {
-      video {
-        aspect-ratio: 16 / 9;
+      #applixir_video_ad {
+        max-height: 80vh;
       }
     }
   </style>
 </head>
 <body>
-
   <div id="adContainer">
-    <video id="videoPlayer" autoplay muted playsinline></video>
+    <div id="applixir_video_ad"></div>
     <div class="overlay">
-      <div id="adTitle">Loading...</div>
-      <a id="adLink" href="#" target="_blank">Visit Product</a>
+      <div id="adTitle">Watch this ad and earn!</div>
+      <a id="adLink" href="https://mintminute.co/" target="_blank">Visit MintMinute</a>
     </div>
   </div>
 
   <script>
-    let ads = [];
-    let currentIndex = 0;
-
-    const player = document.getElementById("videoPlayer");
-    const adTitle = document.getElementById("adTitle");
-    const adLink = document.getElementById("adLink");
-    const adContainer = document.getElementById("adContainer");
-
-    function loadAd(index) {
-      if (!ads.length) return;
-
-      if (index < 0) index = ads.length - 1;
-      else if (index >= ads.length) index = 0;
-      currentIndex = index;
-
-      const ad = ads[currentIndex];
-      player.src = ad.video;
-      adTitle.innerText = ad.title || "Untitled Ad";
-      adLink.href = ad.link || "#";
-      player.load();
-      player.play();
+    function showAppLixirAd() {
+      let config = {
+        zoneId: 2050,
+        playerId: 'applixir_video_ad',
+        width: 640,
+        height: 480,
+        siteId: 9509,
+        accountId: 8943,
+        callback: function (status) {
+          if (status === "adCompleted") {
+            console.log("User watched full ad — reward them here!");
+            // TODO: Add balance logic here
+          } else {
+            console.log("Ad not completed.");
+          }
+        }
+      };
+      showVideoAd(config);
     }
 
-    fetch("ads.json")
-      .then(res => res.json())
-      .then(data => {
-        ads = data;
-        loadAd(currentIndex);
-      });
-
-    let startY = null;
-
-    adContainer.addEventListener("touchstart", e => {
-      startY = e.touches[0].clientY;
-    }, { passive: true });
-
-    adContainer.addEventListener("touchend", e => {
-      const endY = e.changedTouches[0].clientY;
-      handleSwipe(startY - endY);
-    }, { passive: true });
-
-    adContainer.addEventListener("mousedown", e => {
-      startY = e.clientY;
-    });
-
-    adContainer.addEventListener("mouseup", e => {
-      handleSwipe(startY - e.clientY);
-    });
-
-    function handleSwipe(deltaY) {
-      if (Math.abs(deltaY) < 50) return;
-      if (deltaY > 0) loadAd(currentIndex + 1);
-      else loadAd(currentIndex - 1);
-    }
-
-    window.addEventListener("keydown", e => {
-      if (e.key === "ArrowDown") loadAd(currentIndex + 1);
-      else if (e.key === "ArrowUp") loadAd(currentIndex - 1);
-      else if (e.key === "Enter") player.play();
-    });
+    // Auto-show ad on load
+    window.onload = () => {
+      showAppLixirAd();
+    };
   </script>
-
 </body>
 </html>
