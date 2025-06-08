@@ -77,7 +77,7 @@
     }
 
     #applixir_video_ad {
-      width: 100%;
+      width: 90%;
       height: auto;
       max-width: 640px;
       margin: auto;
@@ -109,7 +109,7 @@
         <input type="text" id="prefKeyInput" disabled>
 
         <button onclick="saveAccountInfo()">Save</button>
-        <button onclick="resetUser()">Reset Account</button>
+        <button onclick="resetUser(); populateFields();">Reset Account</button>
       </div>
     </div>
 
@@ -156,6 +156,7 @@
             updateBalance(0.10);
             populateFields();
             alert("+£0.10 added to your balance!");
+            showAppLixirAd(); // Load next ad after one completes
           }
         }
       };
