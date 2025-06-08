@@ -5,12 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
   <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
+  <script src="user.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -68,16 +65,48 @@
       font-size: 1em;
     }
 
-    @media (min-width: 768px) {
-      #applixir_video_ad {
-        max-height: 80vh;
-      }
+    #userUI {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      border-radius: 8px;
+      color: white;
     }
+
+    #userUI input {
+      margin: 5px 0;
+      padding: 5px;
+      width: 100px;
+    }
+
+    #userUI button {
+      margin-top: 5px;
+      background: #22ff88;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 <body>
   <div id="adContainer">
     <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
+    <div id="userUI">
+      <div id="profileDisplay" style="display: none;">
+        <div><strong>User:</strong> <span id="userName"></span></div>
+        <div><strong>Balance:</strong> £<span id="userBalance">0.00</span></div>
+        <button onclick="resetUser(); location.reload();">Logout</button>
+      </div>
+      <div id="loginForm" style="display: none;">
+        <input type="text" id="username" placeholder="Username" />
+        <input type="number" id="age" placeholder="Age" min="6" max="99" />
+        <button onclick="submitLogin()">Start</button>
+      </div>
+    </div>
     <div id="applixir_video_ad"></div>
     <div class="overlay">
       <div id="adTitle">Watch this ad and earn!</div>
@@ -87,11 +116,16 @@
 
   <script>
     function updateBalanceDisplay() {
-      const balance = localStorage.getItem('balance') || '0.00';
-      document.getElementById('balance').textContent = parseFloat(balance).toFixed(2);
+      const user = loadUser();
+      const balance = user ? user.balance.toFixed(2) : "0.00";
+      document.getElementById('balance').textContent = balance;
+      document.getElementById('userBalance').textContent = balance;
     }
 
     function showAppLixirAd() {
+      const user = loadUser();
+      if (!user) return;
+
       let config = {
         zoneId: 2050,
         playerId: 'applixir_video_ad',
@@ -101,9 +135,7 @@
         accountId: 8943,
         callback: function (status) {
           if (status === "adCompleted") {
-            const current = parseFloat(localStorage.getItem('balance') || '0');
-            const updated = (current + 0.10).toFixed(2);
-            localStorage.setItem('balance', updated);
+            updateBalance(0.10);
             updateBalanceDisplay();
             alert("+£0.10 added to your balance!");
           } else {
@@ -114,7 +146,26 @@
       showVideoAd(config);
     }
 
+    function initUser() {
+      const user = loadUser();
+      if (user) {
+        document.getElementById("userName").innerText = user.username;
+        document.getElementById("profileDisplay").style.display = "block";
+      } else {
+        document.getElementById("loginForm").style.display = "block";
+      }
+    }
+
+    function submitLogin() {
+      const username = document.getElementById("username").value;
+      const age = parseInt(document.getElementById("age").value);
+      if (!username || isNaN(age)) return alert("Fill in all fields.");
+      createUser(username, age);
+      location.reload();
+    }
+
     window.onload = () => {
+      initUser();
       updateBalanceDisplay();
       showAppLixirAd();
     };
