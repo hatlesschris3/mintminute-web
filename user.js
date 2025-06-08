@@ -35,3 +35,14 @@ function getUserBalance() {
 function resetUser() {
   localStorage.removeItem("mintUser");
 }
+
+function getPrefKey() {
+  const user = loadUser();
+  return user ? user.prefKey : "Unknown";
+}
+
+function setPrefKey(newKey) {
+  const user = loadUser();
+  user.prefKey = newKey;
+  saveUser(user);
+}
