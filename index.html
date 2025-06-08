@@ -7,7 +7,11 @@
   <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <script src="user.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     html, body {
       height: 100%;
@@ -17,156 +21,150 @@
       overflow: hidden;
     }
 
-    #adContainer {
+    #appContainer {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
       height: 100vh;
-      width: 100vw;
       position: relative;
+    }
+
+    #header {
+      background: #111;
+      padding: 10px 15px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #settingsBtn {
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #222;
+      color: white;
+      padding: 20px;
+      transition: right 0.3s ease-in-out;
+      z-index: 10;
+    }
+
+    #sidebar.active {
+      right: 0;
+    }
+
+    .overlay {
+      padding: 10px;
+    }
+
+    .overlay label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .overlay input {
+      width: 100%;
+      margin-top: 5px;
+      padding: 5px;
+      border-radius: 4px;
+      border: none;
     }
 
     #applixir_video_ad {
       width: 100%;
       height: auto;
-      max-width: 720px;
+      max-width: 640px;
+      margin: auto;
       background: #000;
+      flex: 1;
     }
-
-    .overlay {
-      position: absolute;
-      bottom: 40px;
-      left: 20px;
-      right: 20px;
-      color: #fff;
-      text-shadow: 1px 1px 3px #000;
-      font-size: 1.2em;
-      z-index: 2;
-      text-align: left;
-    }
-
-    .overlay a {
-      color: #22ff88;
-      text-decoration: underline;
-      font-weight: bold;
-      display: block;
-      margin-top: 5px;
-    }
-
-    .balance-display {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      background: rgba(0,0,0,0.7);
-      padding: 10px 15px;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 1em;
-    }
-
-    #userUI {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.6);
-      padding: 10px;
-      border-radius: 8px;
-      color: white;
-    }
-
-    #userUI input {
-      margin: 5px 0;
-      padding: 5px;
-      width: 100px;
-    }
-
-    #userUI button {
-      margin-top: 5px;
-      background: #22ff88;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
   </style>
 </head>
 <body>
-  <div id="adContainer">
-    <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
-    <div id="userUI">
-      <div id="profileDisplay" style="display: none;">
-        <div><strong>User:</strong> <span id="userName"></span></div>
-        <div><strong>Balance:</strong> £<span id="userBalance">0.00</span></div>
-        <button onclick="resetUser(); location.reload();">Logout</button>
-      </div>
-      <div id="loginForm" style="display: none;">
-        <input type="text" id="username" placeholder="Username" />
-        <input type="number" id="age" placeholder="Age" min="6" max="99" />
-        <button onclick="submitLogin()">Start</button>
+  <div id="appContainer">
+    <div id="header">
+      <div>MintMinute</div>
+      <div id="settingsBtn">&#9776;</div>
+    </div>
+
+    <div id="sidebar">
+      <h2>Account Settings</h2>
+      <div class="overlay">
+        <label>Username:</label>
+        <input type="text" id="usernameInput">
+
+        <label>Age:</label>
+        <input type="number" id="ageInput">
+
+        <label>Balance:</label>
+        <div id="balanceDisplay">£0.00</div>
+
+        <label>Preference Key:</label>
+        <input type="text" id="prefKeyInput" disabled>
+
+        <button onclick="saveAccountInfo()">Save</button>
+        <button onclick="resetUser()">Reset Account</button>
       </div>
     </div>
+
     <div id="applixir_video_ad"></div>
-    <div class="overlay">
-      <div id="adTitle">Watch this ad and earn!</div>
-      <a id="adLink" href="https://mintminute.co/" target="_blank">Visit MintMinute</a>
-    </div>
   </div>
 
   <script>
-    function updateBalanceDisplay() {
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    document.getElementById('settingsBtn').addEventListener('click', toggleSidebar);
+
+    function populateFields() {
       const user = loadUser();
-      const balance = user ? user.balance.toFixed(2) : "0.00";
-      document.getElementById('balance').textContent = balance;
-      document.getElementById('userBalance').textContent = balance;
+      if (user) {
+        document.getElementById('usernameInput').value = user.username;
+        document.getElementById('ageInput').value = user.age;
+        document.getElementById('balanceDisplay').textContent = `£${user.balance.toFixed(2)}`;
+        document.getElementById('prefKeyInput').value = user.prefKey;
+      }
+    }
+
+    function saveAccountInfo() {
+      const username = document.getElementById('usernameInput').value;
+      const age = parseInt(document.getElementById('ageInput').value);
+      const user = loadUser() || {};
+      user.username = username;
+      user.age = age;
+      saveUser(user);
+      populateFields();
     }
 
     function showAppLixirAd() {
-      const user = loadUser();
-      if (!user) return;
-
-      let config = {
+      const config = {
         zoneId: 2050,
         playerId: 'applixir_video_ad',
         width: 640,
-        height: 480,
+        height: 360,
         siteId: 9509,
         accountId: 8943,
         callback: function (status) {
           if (status === "adCompleted") {
             updateBalance(0.10);
-            updateBalanceDisplay();
+            populateFields();
             alert("+£0.10 added to your balance!");
-          } else {
-            console.log("Ad not completed.");
           }
         }
       };
       showVideoAd(config);
     }
 
-    function initUser() {
-      const user = loadUser();
-      if (user) {
-        document.getElementById("userName").innerText = user.username;
-        document.getElementById("profileDisplay").style.display = "block";
-      } else {
-        document.getElementById("loginForm").style.display = "block";
-      }
-    }
-
-    function submitLogin() {
-      const username = document.getElementById("username").value;
-      const age = parseInt(document.getElementById("age").value);
-      if (!username || isNaN(age)) return alert("Fill in all fields.");
-      createUser(username, age);
-      location.reload();
-    }
-
     window.onload = () => {
-      initUser();
-      updateBalanceDisplay();
+      if (!loadUser()) createUser("Guest", 13);
+      populateFields();
       showAppLixirAd();
     };
   </script>
