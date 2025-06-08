@@ -92,10 +92,50 @@
       max-width: 640px;
       background: #000;
     }
+
+    #ageGate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    #ageGate input {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+    }
+
+    #ageGate button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #065633;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div id="appContainer">
+  <div id="ageGate">
+    <h2>Enter Your Age</h2>
+    <input type="number" id="ageInputPrompt" placeholder="Enter age" />
+    <button onclick="submitAge()">Continue</button>
+  </div>
+
+  <div id="appContainer" style="display:none;">
     <div id="header">
       <div>MintMinute</div>
       <div id="settingsBtn">&#9776;</div>
@@ -200,10 +240,27 @@
       }
     }
 
-    window.onload = () => {
-      if (!loadUser()) createUser("Guest", 13);
+    function submitAge() {
+      const age = parseInt(document.getElementById('ageInputPrompt').value);
+      if (isNaN(age) || age <= 0) {
+        alert("Please enter a valid age.");
+        return;
+      }
+      createUser("Guest", age);
+      document.getElementById("ageGate").style.display = "none";
+      document.getElementById("appContainer").style.display = "flex";
       populateFields();
       showAppLixirAd();
+    }
+
+    window.onload = () => {
+      const user = loadUser();
+      if (user) {
+        document.getElementById("ageGate").style.display = "none";
+        document.getElementById("appContainer").style.display = "flex";
+        populateFields();
+        showAppLixirAd();
+      }
     };
   </script>
 </body>
