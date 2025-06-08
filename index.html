@@ -68,6 +68,24 @@
       flex-direction: column;
       align-items: center;
     }
+
+    #adTitle {
+      margin: 10px 0;
+    }
+
+    #adLink {
+      background-color: #065633;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    #adLink:hover {
+      background-color: #088b5c;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +99,7 @@
     <button id="startBtn">Start Watching</button>
 
     <div id="video-container">
+      <h2 id="adTitle">Loading Ad...</h2>
       <iframe
         id="ytPlayer"
         src=""
@@ -88,6 +107,8 @@
         allowfullscreen
         title="YouTube video player"
       ></iframe>
+
+      <a id="adLink" href="#" target="_blank">Visit Product</a>
 
       <div>
         <button id="prevBtn">Previous</button>
@@ -97,36 +118,40 @@
   </main>
 
   <script>
-    const videos = [
-      "dQw4w9WgXcQ",
-      "kJQP7kiw5Fk",
-      "3JZ_D3ELwOQ",
-      "9bZkp7q19f0",
-      "L_jWHffIx5E",
-      "tVj0ZTS4WF4"
-    ];
-
+    let ads = [];
     let currentIndex = 0;
+
     const player = document.getElementById("ytPlayer");
     const container = document.getElementById("video-container");
     const startBtn = document.getElementById("startBtn");
 
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const adTitle = document.getElementById("adTitle");
+    const adLink = document.getElementById("adLink");
+
     function loadVideo(index) {
-      if (index < 0) index = videos.length - 1;
-      else if (index >= videos.length) index = 0;
+      if (ads.length === 0) return;
+
+      if (index < 0) index = ads.length - 1;
+      else if (index >= ads.length) index = 0;
       currentIndex = index;
-      const videoId = videos[currentIndex];
-      player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+
+      const ad = ads[currentIndex];
+      player.src = `${ad.video}?autoplay=1&rel=0&modestbranding=1`;
+      adTitle.innerText = ad.title || "Untitled Ad";
+      adLink.href = ad.link || "#";
     }
 
-    document.getElementById("prevBtn").addEventListener("click", () => {
-      loadVideo(currentIndex - 1);
-    });
+    fetch("ads.json")
+      .then(res => res.json())
+      .then(data => {
+        ads = data;
+      });
 
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      loadVideo(currentIndex + 1);
-    });
-
+    prevBtn.addEventListener("click", () => loadVideo(currentIndex - 1));
+    nextBtn.addEventListener("click", () => loadVideo(currentIndex + 1));
     startBtn.addEventListener("click", () => {
       startBtn.style.display = "none";
       container.style.display = "flex";
