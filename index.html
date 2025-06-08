@@ -85,7 +85,10 @@
         callback: function (status) {
           if (status === "adCompleted") {
             console.log("User watched full ad — reward them here!");
-            // TODO: Add balance logic here
+            // TODO: Add balance update logic here (e.g. increment localStorage balance)
+            const current = parseFloat(localStorage.getItem('balance') || '0');
+            localStorage.setItem('balance', (current + 0.10).toFixed(2));
+            alert("+£0.10 added to your balance!");
           } else {
             console.log("Ad not completed.");
           }
