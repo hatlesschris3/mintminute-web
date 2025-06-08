@@ -57,6 +57,17 @@
       margin-top: 5px;
     }
 
+    .balance-display {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1em;
+    }
+
     @media (min-width: 768px) {
       #applixir_video_ad {
         max-height: 80vh;
@@ -66,6 +77,7 @@
 </head>
 <body>
   <div id="adContainer">
+    <div class="balance-display">Balance: £<span id="balance">0.00</span></div>
     <div id="applixir_video_ad"></div>
     <div class="overlay">
       <div id="adTitle">Watch this ad and earn!</div>
@@ -74,6 +86,11 @@
   </div>
 
   <script>
+    function updateBalanceDisplay() {
+      const balance = localStorage.getItem('balance') || '0.00';
+      document.getElementById('balance').textContent = parseFloat(balance).toFixed(2);
+    }
+
     function showAppLixirAd() {
       let config = {
         zoneId: 2050,
@@ -84,10 +101,10 @@
         accountId: 8943,
         callback: function (status) {
           if (status === "adCompleted") {
-            console.log("User watched full ad — reward them here!");
-            // TODO: Add balance update logic here (e.g. increment localStorage balance)
             const current = parseFloat(localStorage.getItem('balance') || '0');
-            localStorage.setItem('balance', (current + 0.10).toFixed(2));
+            const updated = (current + 0.10).toFixed(2);
+            localStorage.setItem('balance', updated);
+            updateBalanceDisplay();
             alert("+£0.10 added to your balance!");
           } else {
             console.log("Ad not completed.");
@@ -97,8 +114,8 @@
       showVideoAd(config);
     }
 
-    // Auto-show ad on load
     window.onload = () => {
+      updateBalanceDisplay();
       showAppLixirAd();
     };
   </script>
