@@ -1,0 +1,20 @@
+[
+  {
+    "file": "videos/survey1.mp4",
+    "type": "survey",
+    "payout": 0.25,
+    "interactive": false
+  },
+  {
+    "file": "videos/quiz1.mp4",
+    "type": "quiz",
+    "payout": 0.15,
+    "interactive": true
+  },
+  {
+    "file": "videos/image_tag1.mp4",
+    "type": "image_tag",
+    "payout": 0.08,
+    "interactive": false
+  }
+]
