@@ -95,17 +95,6 @@
       border-bottom: 1px solid #444;
       padding-bottom: 5px;
     }
-
-    #watchBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1em;
-      background: #0f7;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      color: black;
-    }
   </style>
 </head>
 <body>
@@ -123,7 +112,6 @@
 
     <div id="adContainer">
       <div id="applixir_video_ad"></div>
-      <button id="watchBtn" onclick="showAppLixirAd()">Watch Ad & Earn</button>
     </div>
   </div>
 
@@ -139,12 +127,23 @@
       const section = document.getElementById('authSection');
       section.innerHTML = "";
 
+      const options = `
+        <option value="any">Any</option>
+        <option value="survey">Surveys</option>
+        <option value="quiz">Quizzes</option>
+        <option value="image_tag">Image Tagging</option>
+        <option value="video">Videos</option>
+        <option value="audio_ad">Audio Ads</option>
+      `;
+
       if (!user) {
         section.innerHTML = `
           <label>Username:</label>
           <input type="text" id="usernameInput" />
           <label>Age:</label>
           <input type="number" id="ageInput" />
+          <label>Ad Type Preference:</label>
+          <select id="adTypePref">${options}</select>
           <button onclick="handleSignup()">Create Account</button>
         `;
       } else {
@@ -154,6 +153,8 @@
           <input type="text" id="usernameInput" value="${user.username}" />
           <label>Age:</label>
           <input type="number" id="ageInput" value="${user.age}" />
+          <label>Ad Type Preference:</label>
+          <select id="adTypePref">${options}</select>
           <label>Balance:</label>
           <div id="balanceDisplay">£${user.balance.toFixed(2)}</div>
           <button onclick="saveAccountInfo()">Save</button>
@@ -161,17 +162,20 @@
           <h3>Earnings History</h3>
           <ul id="historyList">${history}</ul>
         `;
+        document.getElementById("adTypePref").value = user.adPref || "any";
       }
     }
 
     function handleSignup() {
       const username = document.getElementById('usernameInput').value;
       const age = parseInt(document.getElementById('ageInput').value);
+      const adPref = document.getElementById('adTypePref').value;
       if (!username || isNaN(age) || age <= 0) {
         alert("Please enter valid username and age.");
         return;
       }
       const user = createUser(username, age);
+      user.adPref = adPref;
       saveUser(user);
       populateFields();
     }
@@ -180,6 +184,7 @@
       const user = loadUser() || {};
       user.username = document.getElementById('usernameInput').value;
       user.age = parseInt(document.getElementById('ageInput').value);
+      user.adPref = document.getElementById('adTypePref').value;
       saveUser(user);
       populateFields();
     }
@@ -207,6 +212,7 @@
         callback: function (status) {
           if (status === "adCompleted") {
             awardUser(0.10); // reward user £0.10 (you can change this)
+            showAppLixirAd(); // auto-play next ad
           }
         }
       };
@@ -216,6 +222,7 @@
     window.onload = () => {
       document.getElementById("appContainer").style.display = "flex";
       populateFields();
+      setTimeout(() => showAppLixirAd(), 1000); // autoplay ad on load
     };
   </script>
 </body>
