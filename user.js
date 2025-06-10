@@ -2,30 +2,29 @@ const defaultUser = {
   username: "",
   age: 13,
   balance: 0.00,
-  prefKey: "TCH3-GME2-TY1",
   history: [],
-  adPref: "any"
+  adPref: ['survey','quiz','video','audio_ad','image_tag']
 };
 
 function loadUser() {
-  const user = localStorage.getItem("mintUser");
-  return user ? JSON.parse(user) : null;
+  const v = localStorage.getItem("mintUser");
+  return v ? JSON.parse(v) : null;
 }
 
-function saveUser(user) {
-  localStorage.setItem("mintUser", JSON.stringify(user));
+function saveUser(u) {
+  localStorage.setItem("mintUser", JSON.stringify(u));
 }
 
-function createUser(username, age) {
-  const user = { ...defaultUser, username, age };
-  saveUser(user);
-  return user;
+function createUser(name, age) {
+  const u = {...defaultUser, username:name, age, history:[], adPref:defaultUser.adPref};
+  saveUser(u);
+  return u;
 }
 
-function updateBalance(amount) {
-  const user = loadUser();
-  user.balance = +(user.balance + amount).toFixed(2);
-  saveUser(user);
+function updateBalance(amt){
+  const u = loadUser();
+  u.balance = +(u.balance + amt).toFixed(2);
+  saveUser(u);
 }
 
 function resetUser() {
