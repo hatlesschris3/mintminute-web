@@ -74,12 +74,13 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      flex-direction: column;
     }
 
-    #mainVideo {
+    video, audio {
       width: 100%;
-      height: auto;
       max-width: 640px;
+      margin: auto;
       background: #000;
     }
 
@@ -110,6 +111,7 @@
 
     <div id="videoPlayerContainer">
       <video id="mainVideo" autoplay muted playsinline></video>
+      <audio id="mainAudio" autoplay></audio>
     </div>
   </div>
 
@@ -125,6 +127,15 @@
       const section = document.getElementById('authSection');
       section.innerHTML = "";
 
+      const options = `
+        <option value="any">Any</option>
+        <option value="survey">Surveys</option>
+        <option value="quiz">Quizzes</option>
+        <option value="image_tag">Image Tagging</option>
+        <option value="video">Videos</option>
+        <option value="audio_ad">Audio Ads</option>
+      `;
+
       if (!user) {
         section.innerHTML = `
           <label>Username:</label>
@@ -132,12 +143,7 @@
           <label>Age:</label>
           <input type="number" id="ageInput" />
           <label>Ad Type Preference:</label>
-          <select id="adTypePref">
-            <option value="any">Any</option>
-            <option value="survey">Surveys</option>
-            <option value="quiz">Quizzes</option>
-            <option value="image_tag">Image Tagging</option>
-          </select>
+          <select id="adTypePref">${options}</select>
           <button onclick="handleSignup()">Create Account</button>
         `;
       } else {
@@ -148,12 +154,7 @@
           <label>Age:</label>
           <input type="number" id="ageInput" value="${user.age}" />
           <label>Ad Type Preference:</label>
-          <select id="adTypePref">
-            <option value="any">Any</option>
-            <option value="survey">Surveys</option>
-            <option value="quiz">Quizzes</option>
-            <option value="image_tag">Image Tagging</option>
-          </select>
+          <select id="adTypePref">${options}</select>
           <label>Balance:</label>
           <div id="balanceDisplay">£${user.balance.toFixed(2)}</div>
           <button onclick="saveAccountInfo()">Save</button>
@@ -209,21 +210,34 @@
       const user = loadUser();
       const pref = user?.adPref || "any";
       videos = pref === "any" ? data : data.filter(v => v.type === pref);
-      if (!videos.length) {
-        videos = data;
-      }
-      playNextVideo();
+      if (!videos.length) videos = data;
+      playNext();
     }
 
-    function playNextVideo() {
+    function playNext() {
       const video = videos[currentVideoIndex];
       const videoEl = document.getElementById("mainVideo");
-      videoEl.src = video.file;
-      videoEl.onended = () => {
-        awardUser(video.payout);
-        currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-        playNextVideo();
-      };
+      const audioEl = document.getElementById("mainAudio");
+      videoEl.style.display = "none";
+      audioEl.style.display = "none";
+
+      if (video.type === "audio_ad") {
+        audioEl.src = video.file;
+        audioEl.style.display = "block";
+        audioEl.onended = () => {
+          awardUser(video.payout);
+          currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+          playNext();
+        };
+      } else {
+        videoEl.src = video.file;
+        videoEl.style.display = "block";
+        videoEl.onended = () => {
+          awardUser(video.payout);
+          currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+          playNext();
+        };
+      }
     }
 
     window.onload = () => {
