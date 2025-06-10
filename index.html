@@ -1,13 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
-  <script src="https://cdn.applixir.com/applixir.sdk2.1m.js"></script>
+  <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <script src="user.js"></script>
   <style>
-    /* [Your existing styles here] */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%; width: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      overflow: hidden;
+    }
+
+    #appContainer {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #header {
+      background: #111;
+      padding: 10px 15px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #settingsBtn { font-size: 1.5em; cursor: pointer; }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #222;
+      color: white;
+      padding: 20px;
+      transition: right 0.3s ease-in-out;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    #sidebar.active { right: 0; }
+
+    .overlay label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .overlay input, .overlay select {
+      width: 100%;
+      margin-top: 5px;
+      padding: 5px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    .closeSidebarBtn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+
+    #adContainer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #applixir_video_ad {
+      width: 100%;
+      max-width: 640px;
+      height: auto;
+      background: #000;
+    }
+
+    #historyList {
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+
+    #historyList li {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
   </style>
 </head>
 <body>
@@ -16,14 +103,15 @@
       <div>MintMinute</div>
       <div id="settingsBtn">&#9776;</div>
     </div>
+
     <div id="sidebar">
       <div class="closeSidebarBtn" onclick="toggleSidebar()">×</div>
       <h2>Account Settings</h2>
-      <div id="prefsSection"></div>
-      <div id="authSection"></div>
+      <div class="overlay" id="authSection"></div>
     </div>
+
     <div id="adContainer">
-      <div id="applixir_parent"></div>
+      <div id="applixir_video_ad"></div>
     </div>
   </div>
 
@@ -31,98 +119,110 @@
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
     }
-    document.getElementById('settingsBtn').onclick = toggleSidebar;
+
+    document.getElementById('settingsBtn').addEventListener('click', toggleSidebar);
 
     function populateFields() {
       const user = loadUser();
-      const prefs = ['survey','quiz','image_tag','video','audio_ad'];
-      const prefsHtml = prefs.map(p => `
-        <label><input type="checkbox" value="${p}" id="pref_${p}"> ${p.replace('_',' ')}</label>
-      `).join('');
-      document.getElementById('prefsSection').innerHTML = '<h3>Preferences</h3>' + prefsHtml;
-      if (user?.adPref?.length) {
-        user.adPref.forEach(p => document.getElementById(`pref_${p}`).checked = true);
-      }
+      const section = document.getElementById('authSection');
+      section.innerHTML = "";
 
-      const authHTML = user ? `
-        <label>Username:<input id="usernameInput" value="${user.username}"></label>
-        <label>Age:<input id="ageInput" type="number" value="${user.age}"></label>
-        <label>Balance:</label><div>£${user.balance.toFixed(2)}</div>
-        <button onclick="saveAccountInfo()">Save</button>
-        <button onclick="resetUser(); location.reload()">Reset</button>
-        <h3>History</h3><ul>${(user.history||[]).map(e=>`<li>${e.timestamp}: +£${e.amount.toFixed(2)}</li>`).join('')}</ul>
-      ` : `
-        <label>Username:<input id="usernameInput"></label>
-        <label>Age:<input id="ageInput" type="number"></label>
-        <button onclick="handleSignup()">Create Account</button>
+      const options = `
+        <option value="any">Any</option>
+        <option value="survey">Surveys</option>
+        <option value="quiz">Quizzes</option>
+        <option value="image_tag">Image Tagging</option>
+        <option value="video">Videos</option>
+        <option value="audio_ad">Audio Ads</option>
       `;
-      document.getElementById('authSection').innerHTML = authHTML;
-    }
 
-    function getSelectedPrefs() {
-      return ['survey','quiz','image_tag','video','audio_ad']
-        .filter(p => document.getElementById(`pref_${p}`).checked);
+      if (!user) {
+        section.innerHTML = `
+          <label>Username:</label>
+          <input type="text" id="usernameInput" />
+          <label>Age:</label>
+          <input type="number" id="ageInput" />
+          <label>Ad Type Preference:</label>
+          <select id="adTypePref">${options}</select>
+          <button onclick="handleSignup()">Create Account</button>
+        `;
+      } else {
+        const history = (user.history || []).map(entry => `<li>${entry.timestamp}: +£${entry.amount.toFixed(2)}</li>`).join('');
+        section.innerHTML = `
+          <label>Username:</label>
+          <input type="text" id="usernameInput" value="${user.username}" />
+          <label>Age:</label>
+          <input type="number" id="ageInput" value="${user.age}" />
+          <label>Ad Type Preference:</label>
+          <select id="adTypePref">${options}</select>
+          <label>Balance:</label>
+          <div id="balanceDisplay">£${user.balance.toFixed(2)}</div>
+          <button onclick="saveAccountInfo()">Save</button>
+          <button onclick="resetUser(); location.reload();">Reset Account</button>
+          <h3>Earnings History</h3>
+          <ul id="historyList">${history}</ul>
+        `;
+        document.getElementById("adTypePref").value = user.adPref || "any";
+      }
     }
 
     function handleSignup() {
-      const u = document.getElementById('usernameInput').value;
+      const username = document.getElementById('usernameInput').value;
       const age = parseInt(document.getElementById('ageInput').value);
-      if (!u || isNaN(age)|| age<=0){return alert('Enter valid info');}
-      const user = createUser(u, age);
-      user.adPref = getSelectedPrefs();
+      const adPref = document.getElementById('adTypePref').value;
+      if (!username || isNaN(age) || age <= 0) {
+        alert("Please enter valid username and age.");
+        return;
+      }
+      const user = createUser(username, age);
+      user.adPref = adPref;
       saveUser(user);
       populateFields();
     }
 
-    function saveAccountInfo(){
-      const user = loadUser();
+    function saveAccountInfo() {
+      const user = loadUser() || {};
       user.username = document.getElementById('usernameInput').value;
-      user.age = +document.getElementById('ageInput').value;
-      user.adPref = getSelectedPrefs();
+      user.age = parseInt(document.getElementById('ageInput').value);
+      user.adPref = document.getElementById('adTypePref').value;
       saveUser(user);
       populateFields();
     }
 
     function awardUser(payout) {
-      const cut = 0.2;
-      const earn = +(payout * (1 - cut)).toFixed(2);
-      const u = loadUser();
-      u.balance += earn;
-      u.history = u.history||[];
-      u.history.push({amount:earn, timestamp:new Date().toLocaleString()});
-      saveUser(u);
-      populateFields();
-    }
-
-    let app;
-
-    function initializeApplixir() {
-      const options = {
-        zoneId:2050,
-        devId:8943,
-        adStatusCb: status => {
-          console.log('Ad status=',status);
-          if(status==='complete') awardUser(0.10);
-        },
-        verbosity:0
-      };
-      app = new Application(options);
-      app.initialize();
-    }
-
-    function playAdIfAllowed() {
+      const platformCut = 0.2;
+      const userEarning = +(payout * (1 - platformCut)).toFixed(2);
       const user = loadUser();
-      if (!user || !user.adPref || user.adPref.includes('video')) {
-        app.openPlayer();
-      } else {
-        setTimeout(playAdIfAllowed, 1000);
-      }
+      user.balance = +(user.balance + userEarning).toFixed(2);
+      user.history = user.history || [];
+      user.history.push({ amount: userEarning, timestamp: new Date().toLocaleString() });
+      saveUser(user);
+      populateFields();
+      alert(`+£${userEarning} added to your balance!`);
+    }
+
+    function showAppLixirAd() {
+      const config = {
+        zoneId: 2050,
+        playerId: 'applixir_video_ad',
+        width: 640,
+        height: 360,
+        siteId: 9509,
+        accountId: 8943,
+        callback: function (status) {
+          if (status === "adCompleted") {
+            awardUser(0.10); // reward user £0.10 (you can change this)
+            showAppLixirAd(); // auto-play next ad
+          }
+        }
+      };
+      showVideoAd(config);
     }
 
     window.onload = () => {
-      initializeApplixir();
+      document.getElementById("appContainer").style.display = "flex";
       populateFields();
-      setTimeout(playAdIfAllowed, 1000);
+      setTimeout(() => showAppLixirAd(), 1000); // autoplay ad on load
     };
   </script>
 </body>
