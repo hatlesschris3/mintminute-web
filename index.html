@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
+  <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <script src="user.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,19 +69,19 @@
       cursor: pointer;
     }
 
-    #videoPlayerContainer {
+    #adContainer {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
       flex-direction: column;
+      overflow: hidden;
     }
 
-    video, audio {
+    #applixir_video_ad {
       width: 100%;
       max-width: 640px;
-      margin: auto;
+      height: auto;
       background: #000;
     }
 
@@ -93,6 +94,17 @@
       margin-bottom: 5px;
       border-bottom: 1px solid #444;
       padding-bottom: 5px;
+    }
+
+    #watchBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #0f7;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: black;
     }
   </style>
 </head>
@@ -109,9 +121,9 @@
       <div class="overlay" id="authSection"></div>
     </div>
 
-    <div id="videoPlayerContainer">
-      <video id="mainVideo" autoplay muted playsinline></video>
-      <audio id="mainAudio" autoplay></audio>
+    <div id="adContainer">
+      <div id="applixir_video_ad"></div>
+      <button id="watchBtn" onclick="showAppLixirAd()">Watch Ad & Earn</button>
     </div>
   </div>
 
@@ -127,23 +139,12 @@
       const section = document.getElementById('authSection');
       section.innerHTML = "";
 
-      const options = `
-        <option value="any">Any</option>
-        <option value="survey">Surveys</option>
-        <option value="quiz">Quizzes</option>
-        <option value="image_tag">Image Tagging</option>
-        <option value="video">Videos</option>
-        <option value="audio_ad">Audio Ads</option>
-      `;
-
       if (!user) {
         section.innerHTML = `
           <label>Username:</label>
           <input type="text" id="usernameInput" />
           <label>Age:</label>
           <input type="number" id="ageInput" />
-          <label>Ad Type Preference:</label>
-          <select id="adTypePref">${options}</select>
           <button onclick="handleSignup()">Create Account</button>
         `;
       } else {
@@ -153,8 +154,6 @@
           <input type="text" id="usernameInput" value="${user.username}" />
           <label>Age:</label>
           <input type="number" id="ageInput" value="${user.age}" />
-          <label>Ad Type Preference:</label>
-          <select id="adTypePref">${options}</select>
           <label>Balance:</label>
           <div id="balanceDisplay">£${user.balance.toFixed(2)}</div>
           <button onclick="saveAccountInfo()">Save</button>
@@ -162,20 +161,17 @@
           <h3>Earnings History</h3>
           <ul id="historyList">${history}</ul>
         `;
-        document.getElementById("adTypePref").value = user.adPref || "any";
       }
     }
 
     function handleSignup() {
       const username = document.getElementById('usernameInput').value;
       const age = parseInt(document.getElementById('ageInput').value);
-      const adPref = document.getElementById('adTypePref').value;
       if (!username || isNaN(age) || age <= 0) {
         alert("Please enter valid username and age.");
         return;
       }
       const user = createUser(username, age);
-      user.adPref = adPref;
       saveUser(user);
       populateFields();
     }
@@ -184,7 +180,6 @@
       const user = loadUser() || {};
       user.username = document.getElementById('usernameInput').value;
       user.age = parseInt(document.getElementById('ageInput').value);
-      user.adPref = document.getElementById('adTypePref').value;
       saveUser(user);
       populateFields();
     }
@@ -201,49 +196,26 @@
       alert(`+£${userEarning} added to your balance!`);
     }
 
-    let videos = [];
-    let currentVideoIndex = 0;
-
-    async function loadVideos() {
-      const res = await fetch('videoData.json');
-      const data = await res.json();
-      const user = loadUser();
-      const pref = user?.adPref || "any";
-      videos = pref === "any" ? data : data.filter(v => v.type === pref);
-      if (!videos.length) videos = data;
-      playNext();
-    }
-
-    function playNext() {
-      const video = videos[currentVideoIndex];
-      const videoEl = document.getElementById("mainVideo");
-      const audioEl = document.getElementById("mainAudio");
-      videoEl.style.display = "none";
-      audioEl.style.display = "none";
-
-      if (video.type === "audio_ad") {
-        audioEl.src = video.file;
-        audioEl.style.display = "block";
-        audioEl.onended = () => {
-          awardUser(video.payout);
-          currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-          playNext();
-        };
-      } else {
-        videoEl.src = video.file;
-        videoEl.style.display = "block";
-        videoEl.onended = () => {
-          awardUser(video.payout);
-          currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-          playNext();
-        };
-      }
+    function showAppLixirAd() {
+      const config = {
+        zoneId: 2050,
+        playerId: 'applixir_video_ad',
+        width: 640,
+        height: 360,
+        siteId: 9509,
+        accountId: 8943,
+        callback: function (status) {
+          if (status === "adCompleted") {
+            awardUser(0.10); // reward user £0.10 (you can change this)
+          }
+        }
+      };
+      showVideoAd(config);
     }
 
     window.onload = () => {
       document.getElementById("appContainer").style.display = "flex";
       populateFields();
-      loadVideos();
     };
   </script>
 </body>
