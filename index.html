@@ -5,11 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MintMinute</title>
 
+  <!-- Ezoic Privacy Scripts -->
+  <script src="https://cmp.gatekeeperconsent.com/min.js" data-cfasync="false"></script>
+  <script src="https://the.gatekeeperconsent.com/cmp.min.js" data-cfasync="false"></script>
+
+  <!-- Ezoic Header Script -->
+  <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+  <script>
+      window.ezstandalone = window.ezstandalone || {};
+      ezstandalone.cmd = ezstandalone.cmd || [];
+  </script>
+
   <!-- Applixir SDK -->
   <script src="https://api.applixir.com/evt/videoAd.min.js"></script>
   <script src="user.js"></script>
 
   <style>
+    /* [existing styles unchanged] */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       height: 100%; width: 100%;
@@ -17,13 +29,11 @@
       background-color: #000;
       overflow: hidden;
     }
-
     #appContainer {
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
-
     #header {
       background: #111;
       padding: 10px 15px;
@@ -32,12 +42,10 @@
       justify-content: space-between;
       align-items: center;
     }
-
     #settingsBtn {
       font-size: 1.5em;
       cursor: pointer;
     }
-
     #sidebar {
       position: fixed;
       top: 0;
@@ -51,14 +59,11 @@
       z-index: 10;
       overflow-y: auto;
     }
-
     #sidebar.active { right: 0; }
-
     .overlay label {
       display: block;
       margin-top: 10px;
     }
-
     .overlay input, .overlay select {
       width: 100%;
       margin-top: 5px;
@@ -66,7 +71,6 @@
       border-radius: 4px;
       border: none;
     }
-
     .closeSidebarBtn {
       position: absolute;
       top: 10px;
@@ -74,7 +78,6 @@
       font-size: 1.5em;
       cursor: pointer;
     }
-
     #adContainer {
       flex: 1;
       display: flex;
@@ -83,19 +86,16 @@
       flex-direction: column;
       overflow: hidden;
     }
-
     #applixir_video_ad {
       width: 100%;
       max-width: 640px;
       height: auto;
       background: #000;
     }
-
     #historyList {
       margin-top: 15px;
       font-size: 0.9em;
     }
-
     #historyList li {
       margin-bottom: 5px;
       border-bottom: 1px solid #444;
